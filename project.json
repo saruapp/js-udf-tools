@@ -1,0 +1,64 @@
+{
+  "name": "js-udf-tools",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/js-udf-tools/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/js-udf-tools",
+        "command": "tsup"
+      },
+      "forwardAllArgs": false
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/js-udf-tools",
+        "command": "eslint src/ test/"
+      },
+      "forwardAllArgs": false
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/js-udf-tools",
+        "command": "rm -rf dist"
+      },
+      "forwardAllArgs": false
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/js-udf-tools",
+        "command": "jest"
+      },
+      "forwardAllArgs": false
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "cwd": "packages/js-udf-tools",
+        "command": "pnpm publish"
+      }
+    },
+    "publish-all": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "cwd": "packages/js-udf-tools",
+        "command": "pnpm publish"
+      }
+    },
+    "publish-github": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "cwd": "packages/js-udf-tools",
+        "command": "cp package.json package.json.bak && node -e \"const p=require('./package.json');p.name='@saruapp/js-udf-tools';require('fs').writeFileSync('./package.json',JSON.stringify(p,null,2)+'\\n')\" && pnpm publish --registry=https://npm.pkg.github.com || true; mv package.json.bak package.json"
+      }
+    }
+  }
+}
