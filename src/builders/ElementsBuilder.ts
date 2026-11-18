@@ -184,6 +184,10 @@ export class ElementsBuilder {
     const lineSpacing = this.getLineSpacing(styles['line-height']);
 
     const contents = pieces.map((p) => {
+      // Sekme karakteri stil taşımaz; UDF'de `<tab/>` elemanı olur.
+      if (p.isTab) {
+        return { startOffset: p.startOffset, length: 1, isTab: true };
+      }
       const pieceStyles = this.computedStyles.get(p.element) || {};
       return {
         startOffset: p.startOffset,
@@ -211,8 +215,24 @@ export class ElementsBuilder {
       bulleted: options?.bulleted,
       numbered: options?.numbered,
       listLevel: options?.listLevel,
+      tabStops: this.getTabStops(styles['tab-stops']),
       contents,
     };
+  }
+
+  /**
+   * CSS `tab-stops` değerini UDF `TabSet` biçimine çevirir.
+   * `105pt` → `105.0:0:0`; `36pt 105pt` → `36.0:0:0,105.0:0:0`
+   */
+  private getTabStops(value?: string): string | undefined {
+    if (!value) return undefined;
+    const stops = value
+      .split(/[\s,]+/)
+      .map((token) => this.getIndent(token))
+      .filter((pt) => pt > 0)
+      .sort((a, b) => a - b);
+    if (stops.length === 0) return undefined;
+    return stops.map((pt) => `${pt.toFixed(1)}:0:0`).join(',');
   }
 
   /**
@@ -461,9 +481,16 @@ export class ElementsBuilder {
     if (!color) return undefined;
 
     try {
-      // Hex renk (#RRGGBB)
+      // Hex renk (#RGB veya #RRGGBB)
       if (color.startsWith('#')) {
-        const hex = color.substring(1);
+        let hex = color.substring(1);
+        if (hex.length === 3) {
+          hex = hex
+            .split('')
+            .map((c) => c + c)
+            .join('');
+        }
+        if (!/^[0-9a-fA-F]{6}$/.test(hex)) return undefined;
         const r = parseInt(hex.substring(0, 2), 16);
         const g = parseInt(hex.substring(2, 4), 16);
         const b = parseInt(hex.substring(4, 6), 16);

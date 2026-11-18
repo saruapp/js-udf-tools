@@ -103,6 +103,7 @@ export class XMLBuilder {
     if (p.bulleted) attrs.Bulleted = p.bulleted;
     if (p.numbered) attrs.Numbered = p.numbered;
     if (p.listLevel !== undefined && p.listLevel !== 0) attrs.ListLevel = p.listLevel;
+    if (p.tabStops) attrs.TabSet = p.tabStops;
 
     const pElem = parent.ele('paragraph', attrs);
 
@@ -111,6 +112,13 @@ export class XMLBuilder {
     }
 
     for (const content of p.contents) {
+      if (content.isTab) {
+        pElem.ele('tab', {
+          startOffset: content.startOffset,
+          length: content.length,
+        });
+        continue;
+      }
       const contentAttrs: Record<string, any> = {
         startOffset: content.startOffset,
         length: content.length,

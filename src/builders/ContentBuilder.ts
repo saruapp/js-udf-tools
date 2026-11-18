@@ -5,6 +5,8 @@ export interface TextPiece {
   text: string;
   startOffset: number;
   length: number;
+  /** Sekme karakteri (UDF `<tab/>`). */
+  isTab?: boolean;
   element: HTMLElement;
   ownerElement: HTMLElement;
   blockElement: HTMLElement;
@@ -29,8 +31,11 @@ export class ContentBuilder {
     const imageOffsets = new Map<HTMLElement, number>();
 
     let currentOffset = 0;
+    // Tek paylaşılan blok: alt bloktan dönünce bayat konteynere metin yazılmasını
+    // engeller (paragraf sırası DOM sırasıyla aynı kalır).
+    let currentBlock: HTMLElement | null = null;
 
-    const traverseChildren = (el: HTMLElement, currentBlock: HTMLElement | null) => {
+    const traverseChildren = (el: HTMLElement) => {
       for (const node of el.childNodes) {
         if (node.nodeType === 1) {
           const element = node as HTMLElement;
@@ -59,7 +64,7 @@ export class ContentBuilder {
             }
           }
 
-          traverseChildren(element, currentBlock);
+          traverseChildren(element);
         } else if (node.nodeType === 3) {
           const text = node.textContent || '';
           if (text.trim().length > 0) {
@@ -71,19 +76,39 @@ export class ContentBuilder {
               }
             }
 
-            const textPiece: TextPiece = {
-              text,
-              startOffset: currentOffset,
-              length: text.length,
-              element: node.parentNode,
-              ownerElement: node.parentNode,
-              blockElement: currentBlock,
-              styleName: this.getStyleName(node.parentNode, computedStyles),
-            };
-
-            blockTextPieces.get(currentBlock)!.push(textPiece);
-            fullText.push(text);
-            currentOffset += text.length;
+            // Sekmeler ayrı `<tab/>` elemanı olur; CDATA'da 1 karakter kalır.
+            const parts = text.split('\t');
+            parts.forEach((part, index) => {
+              if (part.length > 0) {
+                const textPiece: TextPiece = {
+                  text: part,
+                  startOffset: currentOffset,
+                  length: part.length,
+                  element: node.parentNode,
+                  ownerElement: node.parentNode,
+                  blockElement: currentBlock!,
+                  styleName: this.getStyleName(node.parentNode, computedStyles),
+                };
+                blockTextPieces.get(currentBlock!)!.push(textPiece);
+                fullText.push(part);
+                currentOffset += part.length;
+              }
+              if (index < parts.length - 1) {
+                const tabPiece: TextPiece = {
+                  text: '\t',
+                  startOffset: currentOffset,
+                  length: 1,
+                  isTab: true,
+                  element: node.parentNode,
+                  ownerElement: node.parentNode,
+                  blockElement: currentBlock!,
+                  styleName: 'default',
+                };
+                blockTextPieces.get(currentBlock!)!.push(tabPiece);
+                fullText.push('\t');
+                currentOffset += 1;
+              }
+            });
           }
         }
       }
@@ -92,7 +117,7 @@ export class ContentBuilder {
     const body = root.querySelector('body');
     const traversalRoot = body || root;
 
-    traverseChildren(traversalRoot, null);
+    traverseChildren(traversalRoot);
 
     return {
       fullText: fullText.join(''),
@@ -139,15 +164,6 @@ export class ContentBuilder {
     if (tag === 'img') {
       return true;
     }
-    if (tag === 'ul' || tag === 'ol' || tag === 'div' || tag === 'span') {
-      for (const node of el.childNodes) {
-        if (node.nodeType === 1) {
-          if (this.hasVisibleContent(node as HTMLElement)) return true;
-        }
-      }
-      return false;
-    }
-
     for (const node of el.childNodes) {
       if (node.nodeType === 3) {
         const text = node.textContent || '';

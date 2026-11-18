@@ -203,6 +203,16 @@ describe('UDFConverter', () => {
     expect(xml).toContain('SpaceAfter="9"');
   });
 
+  it('lets a class rule override a tag rule (CSS specificity)', async () => {
+    const file = await converter.convert(
+      '<style>p { margin: 0; } .block { margin-bottom: 12pt; }</style><p class="block">metin</p>',
+      '/output/cascade.udf',
+    );
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    expect(xml).toContain('SpaceAfter="12"');
+  });
+
   it('unwraps @media blocks so their rules still apply', async () => {
     const file = await converter.convert(
       '<style>@media print { p { font-size: 15pt; } }</style><p>metin</p>',
@@ -275,5 +285,70 @@ describe('UDFConverter', () => {
 
     expect(file.exists).toBe(true);
     expect(file.size).toBeGreaterThan(0);
+  });
+
+  it('parses 3-digit hex colors (#fff is white, not red)', async () => {
+    const file = await converter.convert(
+      '<style>.wrap { background-color: #fff; color: #666; }</style><div class="wrap"><p>metin</p></div>',
+      '/output/hex3.udf',
+    );
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    expect(xml).toContain('background="-1"');
+    expect(xml).not.toContain('-61696');
+    expect(xml).toContain('foreground="-10066330"');
+  });
+
+  it('parses 6-digit hex colors', async () => {
+    const file = await converter.convert(
+      '<p style="color:#2c3e50">metin</p>',
+      '/output/hex6.udf',
+    );
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    expect(xml).toContain('foreground="-13877680"');
+  });
+
+  it('emits <tab/> and TabSet for tab characters with tab-stops', async () => {
+    const file = await converter.convert(
+      '<p style="tab-stops: 105pt">Büro Adı&#9;: Ankara</p>',
+      '/output/tab.udf',
+    );
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    expect(xml).toContain('TabSet="105.0:0:0"');
+    expect(xml).toContain('<tab startOffset="8" length="1"/>');
+    expect(xml).not.toMatch(/<content[^>]*startOffset="8" length="1"/);
+  });
+
+  it('maps multiple tab-stops to an ascending TabSet list', async () => {
+    const file = await converter.convert(
+      '<p style="tab-stops: 105pt 36pt">&#9;metin</p>',
+      '/output/tab-multi.udf',
+    );
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    expect(xml).toContain('TabSet="36.0:0:0,105.0:0:0"');
+  });
+
+  it('keeps paragraph offsets in DOM order when wrappers contain text', async () => {
+    const file = await converter.convert(
+      `<div class="header">
+         <div class="info-label">Büro:</div>
+         <div class="info-value">Ankara</div>
+       </div>
+       <h1>Başlık</h1>
+       <div class="content"><div>Gövde metni</div></div>`,
+      '/output/order.udf',
+    );
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    const elements = xml.match(/<elements[^>]*>([\s\S]*)<\/elements>/)![1];
+    const offsets = [...elements.matchAll(/<paragraph[^>]*>[\s\S]*?startOffset="(\d+)"/g)].map(
+      (match) => parseInt(match[1]),
+    );
+    expect(offsets.length).toBeGreaterThan(1);
+    expect(offsets).toEqual([...offsets].sort((a, b) => a - b));
+    expect(offsets[0]).toBe(0);
   });
 });

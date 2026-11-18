@@ -222,10 +222,14 @@ const converter = new UDFConverter(new MyMemoryFS());
 | `<header>` | `<header>` |
 | `<footer>` | `<footer>` |
 | `page-break-before: always` (class/inline) | `<page-break>` |
+| Metinde `\t` / `&#9;` | `<tab startOffset length="1"/>` |
+| CSS `tab-stops: 105pt` | `<paragraph TabSet="105.0:0:0">` (çoklu durak virgüllü) |
 
 ### Desteklenen CSS Özellikleri
 
-`text-align` · `margin-left` · `margin-right` · `margin-top` · `margin-bottom` · `text-indent` · `line-height` · `font-family` · `font-size` · `font-weight` · `font-style` · `text-decoration` · `color` · `background-color` · `vertical-align` (tablo hücreleri)
+`text-align` · `margin-left` · `margin-right` · `margin-top` · `margin-bottom` · `text-indent` · `line-height` · `font-family` · `font-size` · `font-weight` · `font-style` · `text-decoration` · `color` · `background-color` · `tab-stops` · `vertical-align` (tablo hücreleri)
+
+Renkler `#RGB`, `#RRGGBB` ve `rgb(r,g,b)` biçimlerinde kabul edilir.
 
 En tutarlı sonuçlar için `pt` birimini kullanın.
 
@@ -254,7 +258,7 @@ Dönüşüm 6 adımlı bir işlem hattından geçer:
 
 Henüz desteklenmeyen UDF özellikleri:
 
-- `<tab>`, `<space>`, `<field>` elementleri
+- `<space>`, `<field>` elementleri
 - Sayfa numarası (`pageNumber-spec`)
 - Sayfa kenarlıkları, sayfa sütunları
 - Arka plan resimleri (`<bgImage>`)

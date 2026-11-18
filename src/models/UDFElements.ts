@@ -14,6 +14,8 @@ export interface UDFParagraph {
   bulleted?: boolean;
   numbered?: boolean;
   listLevel?: number;
+  /** UDF `TabSet` değeri (örn. "36.0:0:0,105.0:0:0"). */
+  tabStops?: string;
   contents: UDFContentReference[];
   image?: UDFImage;
 }
@@ -21,6 +23,8 @@ export interface UDFParagraph {
 export interface UDFContentReference {
   startOffset: number;
   length: number;
+  /** Metin değil sekme karakteri: `<tab/>` olarak yazılır. */
+  isTab?: boolean;
   family?: string;
   size?: number;
   bold?: boolean;

@@ -129,12 +129,12 @@ export class HTMLParser {
         return;
       }
 
-      // Seçicileri oluştur
+      // Seçicileri oluştur — CSS özgüllük sırasıyla: tag < class < tag.class < id.
       const selectors: string[] = [];
-      if (id) selectors.push(id);
-      if (tag && classes) selectors.push(`${tag}${classes}`);
-      if (classes) selectors.push(classes);
       if (tag) selectors.push(tag);
+      if (classes) selectors.push(classes);
+      if (tag && classes) selectors.push(`${tag}${classes}`);
+      if (id) selectors.push(id);
 
       // Stilleri uygula
       for (const sel of selectors) {
@@ -172,6 +172,7 @@ export class HTMLParser {
         'font-style',
         'text-align',
         'line-height',
+        'tab-stops',
       ];
       for (const prop of inheritProps) {
         if (ownStyles[prop] !== undefined) {
