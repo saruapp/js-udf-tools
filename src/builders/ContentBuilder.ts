@@ -53,6 +53,26 @@ export class ContentBuilder {
           }
 
           if (isBlockElement(element)) {
+            // `class="blank-line"` → içeriği tek `\n` olan boş satır paragrafı
+            // (UYAP editör export'larındaki boş satır konvansiyonu).
+            if (this.isBlankLine(element)) {
+              blockElements.push(element);
+              blockTextPieces.set(element, []);
+              const blankPiece: TextPiece = {
+                text: '\n',
+                startOffset: currentOffset,
+                length: 1,
+                element,
+                ownerElement: element,
+                blockElement: element,
+                styleName: 'default',
+              };
+              blockTextPieces.get(element)!.push(blankPiece);
+              fullText.push('\n');
+              currentOffset += 1;
+              continue;
+            }
+
             const styles = computedStyles.get(element) || {};
             const isPageBreak = styles['page-break-before'] === 'always';
             // Boş `page-break` div'leri metin içermez ama yine de eleman
@@ -125,6 +145,12 @@ export class ContentBuilder {
       blockTextPieces,
       imageOffsets,
     };
+  }
+
+  /** Boş satır işareti: `<p class="blank-line"></p>`. */
+  private isBlankLine(el: HTMLElement): boolean {
+    const classAttr = el.getAttribute('class') || '';
+    return classAttr.split(/\s+/).includes('blank-line');
   }
 
   private isInBody(el: HTMLElement): boolean {

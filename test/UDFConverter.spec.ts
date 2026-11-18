@@ -203,6 +203,23 @@ describe('UDFConverter', () => {
     expect(xml).toContain('SpaceAfter="9"');
   });
 
+  it('emits a dedicated blank-line paragraph for class="blank-line"', async () => {
+    const file = await converter.convert(
+      '<p>Bir</p><p class="blank-line"></p><p>İki</p>',
+      '/output/blank-line.udf',
+    );
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    const cdata = xml.match(/<content><!\[CDATA\[([\s\S]*?)\]\]><\/content>/)![1];
+    expect(cdata).toBe('Bir\nİki');
+    const elements = xml.match(/<elements[^>]*>([\s\S]*)<\/elements>/)![1];
+    const paragraphs = [
+      ...elements.matchAll(/<paragraph[^>]*>([\s\S]*?)<\/paragraph>/g),
+    ];
+    expect(paragraphs).toHaveLength(3);
+    expect(paragraphs[1][1]).toContain('startOffset="3" length="1"');
+  });
+
   it('lets a class rule override a tag rule (CSS specificity)', async () => {
     const file = await converter.convert(
       '<style>p { margin: 0; } .block { margin-bottom: 12pt; }</style><p class="block">metin</p>',

@@ -224,6 +224,7 @@ const converter = new UDFConverter(new MyMemoryFS());
 | `page-break-before: always` (class/inline) | `<page-break>` |
 | Metinde `\t` / `&#9;` | `<tab startOffset length="1"/>` |
 | CSS `tab-stops: 105pt` | `<paragraph TabSet="105.0:0:0">` (çoklu durak virgüllü) |
+| `<p class="blank-line"></p>` | Ayrı boş satır `<paragraph>` (içeriği tek `\n`) |
 
 ### Desteklenen CSS Özellikleri
 
