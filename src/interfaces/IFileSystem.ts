@@ -15,6 +15,8 @@ export interface IFile {
   write(content: Uint8Array | string): Promise<void>;
   /** Read the file content as raw bytes. */
   bytes(): Promise<Uint8Array>;
+  /** Read the file content as a base64-encoded string. */
+  toBase64(): Promise<string>;
   /** Retrieve file metadata. */
   info(): Promise<{
     uri?: string;

@@ -1,5 +1,22 @@
+import JSZip from 'jszip';
 import { UDFConverter } from '../src/core/UDFConverter';
 import { IFile, IFileSystem } from '../src/interfaces/IFileSystem';
+
+function bytesToBase64(bytes: Uint8Array): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  let result = '';
+  const len = bytes.length;
+  for (let i = 0; i < len; i += 3) {
+    const a = bytes[i];
+    const b = i + 1 < len ? bytes[i + 1] : 0;
+    const c = i + 2 < len ? bytes[i + 2] : 0;
+    result += chars[a >> 2];
+    result += chars[((a & 3) << 4) | (b >> 4)];
+    result += i + 1 < len ? chars[((b & 15) << 2) | (c >> 6)] : '=';
+    result += i + 2 < len ? chars[c & 63] : '=';
+  }
+  return result;
+}
 
 class InMemoryFile implements IFile {
   uri: string;
@@ -26,6 +43,10 @@ class InMemoryFile implements IFile {
 
   async bytes(): Promise<Uint8Array> {
     return this.content;
+  }
+
+  async toBase64(): Promise<string> {
+    return bytesToBase64(this.content);
   }
 
   async info() {
@@ -117,12 +138,25 @@ describe('UDFConverter', () => {
     expect(file.size).toBeGreaterThan(0);
   });
 
-  it('should respect pageSize option', async () => {
+  it('emits the UYAP int mediaSizeName for A4 (editor rejects "A4")', async () => {
     const html = '<p>Test</p>';
-    const file = await converter.convert(html, '/output/a4.udf', { pageSize: 'A4' });
+    const file = await converter.convert(html, '/output/a4.udf', {
+      pageSize: 'A4',
+    });
 
     expect(file.exists).toBe(true);
-    expect(file.size).toBeGreaterThan(0);
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    expect(xml).toContain('mediaSizeName="1"');
+    expect(xml).not.toContain('mediaSizeName="A4"');
+  });
+
+  it('defaults mediaSizeName to the same int without options', async () => {
+    const file = await converter.convert('<p>Test</p>', '/output/default.udf');
+
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    expect(xml).toContain('mediaSizeName="1"');
   });
 
   it('should respect margin options', async () => {

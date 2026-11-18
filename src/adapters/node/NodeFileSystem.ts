@@ -38,6 +38,12 @@ class NodeFile implements IFile {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
+  async toBase64(): Promise<string> {
+    const buffer = fs.readFileSync(this.filePath);
+    return buffer.toString('base64');
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
   async info() {
     try {
       const stats = fs.statSync(this.filePath);

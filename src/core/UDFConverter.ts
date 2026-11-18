@@ -52,7 +52,9 @@ export class UDFConverter {
    *
    * @param html - HTML string (full document with `<body>` or fragment)
    * @param outputPath - Destination path for the `.udf` file
-   * @param options.pageSize - Page size: `"A4"` or `"LETTER"` (default: numeric `"1"`)
+   * @param options.pageSize - UYAP page size: `"A4"` → `mediaSizeName="1"`
+   *   (UYAP editörü bu alanı **int** olarak parse eder; `"A4"`/`"LETTER"`
+   *   yazılırsa belge bozuk açılır — SPEC §`mediaSizeName`)
    * @param options.margins - Custom page margins in points
    * @param options.resourceDir - Base directory for resolving relative `<img>` paths
    * @returns The written file reference
@@ -61,7 +63,7 @@ export class UDFConverter {
     html: string,
     outputPath: string,
     options?: {
-      pageSize?: 'A4' | 'LETTER';
+      pageSize?: 'A4';
       margins?: { top: number; bottom: number; left: number; right: number };
       resourceDir?: string;
     },
@@ -89,7 +91,9 @@ export class UDFConverter {
     // 3. Properties
     const properties = {
       pageFormat: {
-        mediaSizeName: options?.pageSize || '1',
+        // UYAP editörü int bekler; 1 = A4 (ampirik olarak doğrulandı).
+        // pageSize yalnız API uyumluluğu için durur; tüm değerler "1" üretir.
+        mediaSizeName: '1',
         leftMargin: options?.margins?.left ?? 42.525,
         rightMargin: options?.margins?.right ?? 42.525,
         topMargin: options?.margins?.top ?? 42.525,
@@ -130,8 +134,7 @@ export class UDFConverter {
       const mime = this.getMimeType(src);
       try {
         const file = this.fs.getFile(imgPath);
-        const bytes = await file.bytes();
-        const base64 = Buffer.from(bytes).toString('base64');
+        const base64 = await file.toBase64();
         const dataUri = `data:${mime};base64,${base64}`;
         replacements.push({ original: match[0], replacement: match[0].replace(src, dataUri) });
       } catch {

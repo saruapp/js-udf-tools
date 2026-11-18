@@ -1,6 +1,22 @@
 import { File, Paths } from 'expo-file-system';
 import { IFile, IFileSystem } from '../../interfaces/IFileSystem';
 
+function bytesToBase64(bytes: Uint8Array): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  let result = '';
+  const len = bytes.length;
+  for (let i = 0; i < len; i += 3) {
+    const a = bytes[i];
+    const b = i + 1 < len ? bytes[i + 1] : 0;
+    const c = i + 2 < len ? bytes[i + 2] : 0;
+    result += chars[a >> 2];
+    result += chars[((a & 3) << 4) | (b >> 4)];
+    result += i + 1 < len ? chars[((b & 15) << 2) | (c >> 6)] : '=';
+    result += i + 2 < len ? chars[c & 63] : '=';
+  }
+  return result;
+}
+
 class RNFile implements IFile {
   private file: File;
 
@@ -36,6 +52,11 @@ class RNFile implements IFile {
 
   async bytes(): Promise<Uint8Array> {
     return await this.file.bytes();
+  }
+
+  async toBase64(): Promise<string> {
+    const bytes = await this.bytes();
+    return bytesToBase64(bytes);
   }
 }
 

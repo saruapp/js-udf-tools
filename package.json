@@ -1,6 +1,6 @@
 {
   "name": "js-udf-tools",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "HTML to UYAP UDF (Ulusal Yargı Ağı Projesi Doküman Formatı) converter library for Node.js and React Native",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -64,13 +64,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/softkoop/js-udf-tools",
+    "url": "https://github.com/saruapp/js-udf-tools",
     "directory": "packages/js-udf-tools"
   },
   "bugs": {
-    "url": "https://github.com/softkoop/js-udf-tools/issues"
+    "url": "https://github.com/saruapp/js-udf-tools/issues"
   },
-  "homepage": "https://github.com/softkoop/js-udf-tools/tree/main/packages/js-udf-tools#readme",
+  "homepage": "https://github.com/saruapp/js-udf-tools/tree/main/packages/js-udf-tools#readme",
   "keywords": [
     "udf",
     "uyap",
