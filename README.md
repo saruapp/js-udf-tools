@@ -221,7 +221,7 @@ const converter = new UDFConverter(new MyMemoryFS());
 | `<img src="dizin/dosya.png">` | `resourceDir` ile otomatik base64'e çevrilir |
 | `<header>` | `<header>` |
 | `<footer>` | `<footer>` |
-| `<div style="page-break-before:always">` | `<page-break>` |
+| `page-break-before: always` (class/inline) | `<page-break>` |
 
 ### Desteklenen CSS Özellikleri
 
@@ -259,6 +259,8 @@ Henüz desteklenmeyen UDF özellikleri:
 - Sayfa kenarlıkları, sayfa sütunları
 - Arka plan resimleri (`<bgImage>`)
 - Şablon `<data>` bölümü
+- CSS: `text-transform`, `border*`, `display:flex`, `page-break-inside`
+  (görsel detay; sayfalama `page-break-before` ile yapılır)
 
 Katkılarınızı bekleriz — [CONTRIBUTING.md](./CONTRIBUTING.md)
 

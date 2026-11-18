@@ -51,6 +51,9 @@ export class ElementsBuilder {
       // Root elementi ele (tag'i olmayan)
       if (!tag) return false;
 
+      // Sayfa sonu işareti (boş div olabilir; metin şartı aranmaz).
+      if (this.isPageBreak(block)) return true;
+
       // ⭐ ÖZEL ELEMENTLER (her zaman tut)
       if (tag === 'table') return true;
       if (tag === 'header') return true;
@@ -69,6 +72,13 @@ export class ElementsBuilder {
     for (const block of validBlocks) {
       const pieces = blockTextPieces.get(block) || [];
       const tag = block.tagName?.toLowerCase();
+
+      // `page-break-before: always` → gerçek <page-break/>; metin varsa
+      // ardından normal blok olarak devam eder.
+      if (this.isPageBreak(block)) {
+        elements.push({ type: 'page-break' });
+        if (pieces.length === 0) continue;
+      }
 
       // ⭐ HEADER
       if (tag === 'header') {
@@ -110,6 +120,11 @@ export class ElementsBuilder {
     }
 
     return elements;
+  }
+
+  private isPageBreak(el: HTMLElement): boolean {
+    const styles = this.computedStyles.get(el) || {};
+    return styles['page-break-before'] === 'always';
   }
 
   /**

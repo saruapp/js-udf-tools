@@ -48,7 +48,11 @@ export class ContentBuilder {
           }
 
           if (isBlockElement(element)) {
-            if (this.hasVisibleContent(element)) {
+            const styles = computedStyles.get(element) || {};
+            const isPageBreak = styles['page-break-before'] === 'always';
+            // Boş `page-break` div'leri metin içermez ama yine de eleman
+            // sırasına girmeli (SPEC: page-break-before desteği).
+            if (isPageBreak || this.hasVisibleContent(element)) {
               blockElements.push(element);
               blockTextPieces.set(element, []);
               currentBlock = element;

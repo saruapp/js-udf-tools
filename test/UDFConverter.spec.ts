@@ -159,6 +159,80 @@ describe('UDFConverter', () => {
     expect(xml).toContain('mediaSizeName="1"');
   });
 
+  it('keeps CSS rules that follow comments (UYAP style regression)', async () => {
+    const file = await converter.convert(
+      '<style>/* Header */ h1 { font-size: 20pt; }</style><h1>Baslik</h1>',
+      '/output/comments.udf',
+    );
+    const xml = await (async () => {
+      const zip = await JSZip.loadAsync(await file.bytes());
+      return zip.file('content.xml')!.async('string');
+    })();
+    expect(xml).toContain('size="20"');
+  });
+
+  it('expands margin shorthand into UDF spacing', async () => {
+    const file = await converter.convert(
+      '<style>p { margin: 10px 0 20px; }</style><p>metin</p>',
+      '/output/shorthand.udf',
+    );
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    expect(xml).toContain('SpaceBefore="7.5"');
+    expect(xml).toContain('SpaceAfter="15"');
+  });
+
+  it('applies simple descendant selectors (.box p)', async () => {
+    const file = await converter.convert(
+      '<style>.box p { font-size: 18pt; }</style><div class="box"><p>metin</p></div>',
+      '/output/descendant.udf',
+    );
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    expect(xml).toContain('size="18"');
+  });
+
+  it('parses inline style attributes', async () => {
+    const file = await converter.convert(
+      '<p style="font-size:16pt;margin-bottom:12px">metin</p>',
+      '/output/inline.udf',
+    );
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    expect(xml).toContain('size="16"');
+    expect(xml).toContain('SpaceAfter="9"');
+  });
+
+  it('unwraps @media blocks so their rules still apply', async () => {
+    const file = await converter.convert(
+      '<style>@media print { p { font-size: 15pt; } }</style><p>metin</p>',
+      '/output/media.udf',
+    );
+    const zip = await JSZip.loadAsync(await file.bytes());
+    const xml = await zip.file('content.xml')!.async('string');
+    expect(xml).toContain('size="15"');
+  });
+
+  it('emits <page-break> for page-break-before: always (class and inline)', async () => {
+    const classFile = await converter.convert(
+      '<style>.page-break { page-break-before: always; }</style><p>bir</p><div class="page-break"></div><p>iki</p>',
+      '/output/break-class.udf',
+    );
+    const classZip = await JSZip.loadAsync(await classFile.bytes());
+    expect(await classZip.file('content.xml')!.async('string')).toContain(
+      '<page-break',
+    );
+
+    const inlineFile = await converter.convert(
+      '<p>bir</p><div style="page-break-before: always"></div><p>iki</p>',
+      '/output/break-inline.udf',
+    );
+    const inlineZip = await JSZip.loadAsync(await inlineFile.bytes());
+    expect(await inlineZip.file('content.xml')!.async('string')).toContain(
+      '<page-break',
+    );
+  });
+
   it('should respect margin options', async () => {
     const html = '<p>Test</p>';
     const file = await converter.convert(html, '/output/margins.udf', {
