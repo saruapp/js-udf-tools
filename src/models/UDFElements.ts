@@ -16,6 +16,8 @@ export interface UDFParagraph {
   listLevel?: number;
   /** UDF `TabSet` değeri (örn. "36.0:0:0,105.0:0:0"). */
   tabStops?: string;
+  /** `<styles>` içindeki paragraf stili (dış UDF'lerde bulunur). */
+  style?: string;
   contents: UDFContentReference[];
   image?: UDFImage;
 }
@@ -33,6 +35,8 @@ export interface UDFContentReference {
   strikethrough?: boolean;
   foreground?: number;
   background?: number;
+  /** `<styles>` içindeki metin stili (dış UDF'lerde bulunur). */
+  style?: string;
 }
 
 export interface UDFTable {

@@ -17,5 +17,6 @@
  */
 
 export { UDFConverter } from './core/UDFConverter';
+export { parseUdf, renderUdfHtml, type ParsedUdfDocument } from './parsers/UDFParser';
 export { IFile, IFileSystem } from './interfaces/IFileSystem';
 export { NodeFileSystem } from './adapters/node/NodeFileSystem';
