@@ -35,6 +35,27 @@ export class ContentBuilder {
     // engeller (paragraf sırası DOM sırasıyla aynı kalır).
     let currentBlock: HTMLElement | null = null;
 
+    // UYAP export paritesi: her metin paragrafı CDATA'da kendi `\n` parçasıyla
+    // biter (resmî UDF'lerde `startOffset=N length=1` olarak görülür). Bu olmadan
+    // ardışık paragrafların metni CDATA'da yapışır (`BirinciIkinci`).
+    const appendBlockNewline = (block: HTMLElement): void => {
+      const pieces = blockTextPieces.get(block);
+      if (!pieces || pieces.length === 0) return;
+      const last = pieces[pieces.length - 1];
+      if (last.text.endsWith('\n')) return;
+      pieces.push({
+        text: '\n',
+        startOffset: currentOffset,
+        length: 1,
+        element: block,
+        ownerElement: block,
+        blockElement: block,
+        styleName: 'default',
+      });
+      fullText.push('\n');
+      currentOffset += 1;
+    };
+
     const traverseChildren = (el: HTMLElement) => {
       for (const node of el.childNodes) {
         if (node.nodeType === 1) {
@@ -85,6 +106,12 @@ export class ContentBuilder {
           }
 
           traverseChildren(element);
+
+          // Paragrafın kendi metni bittiyse (alt blok konteyneri devralmadıysa)
+          // resmî UYAP export'larındaki gibi satır sonu parçasını ekle.
+          if (isBlockElement(element)) {
+            appendBlockNewline(element);
+          }
         } else if (node.nodeType === 3) {
           const text = node.textContent || '';
           if (text.trim().length > 0) {

@@ -211,13 +211,13 @@ describe('UDFConverter', () => {
     const zip = await JSZip.loadAsync(await file.bytes());
     const xml = await zip.file('content.xml')!.async('string');
     const cdata = xml.match(/<content><!\[CDATA\[([\s\S]*?)\]\]><\/content>/)![1];
-    expect(cdata).toBe('Bir\nİki');
+    expect(cdata).toBe('Bir\n\nİki\n');
     const elements = xml.match(/<elements[^>]*>([\s\S]*)<\/elements>/)![1];
     const paragraphs = [
       ...elements.matchAll(/<paragraph[^>]*>([\s\S]*?)<\/paragraph>/g),
     ];
     expect(paragraphs).toHaveLength(3);
-    expect(paragraphs[1][1]).toContain('startOffset="3" length="1"');
+    expect(paragraphs[1][1]).toContain('startOffset="4" length="1"');
   });
 
   it('lets a class rule override a tag rule (CSS specificity)', async () => {

@@ -15,7 +15,7 @@ describe('ContentBuilder', () => {
     const parsed = parser.parse(html);
     const result = contentBuilder.build(parsed.root, parsed.computedStyles);
 
-    expect(result.fullText).toBe('Merhaba Dünya');
+    expect(result.fullText).toBe('Merhaba Dünya\n');
     expect(result.blockElements.length).toBe(1);
   });
 
@@ -24,7 +24,7 @@ describe('ContentBuilder', () => {
     const parsed = parser.parse(html);
     const result = contentBuilder.build(parsed.root, parsed.computedStyles);
 
-    expect(result.fullText).toBe('BirinciIkinci');
+    expect(result.fullText).toBe('Birinci\nIkinci\n');
     expect(result.blockElements.length).toBe(2);
   });
 
@@ -42,7 +42,7 @@ describe('ContentBuilder', () => {
     const parsed = parser.parse(html);
     const result = contentBuilder.build(parsed.root, parsed.computedStyles);
 
-    expect(result.fullText).toBe('Before \uFFFC After');
+    expect(result.fullText).toBe('Before \uFFFC After\n');
   });
 
   it('should handle headings', () => {
