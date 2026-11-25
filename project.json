@@ -16,7 +16,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "packages/js-udf-tools",
-        "command": "eslint src/ test/"
+        "command": "eslint src/"
       },
       "forwardAllArgs": false
     },

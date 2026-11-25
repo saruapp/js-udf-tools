@@ -27,4 +27,4 @@
 - Altbilgide sayfa numarası
 - Şablon `<data>` bölümü ve alan değer çözümlemesi
 
-[0.1.0]: https://github.com/softkoop/js-udf-tools/releases/tag/v0.1.0
+[0.1.0]: https://github.com/saruapp/js-udf-tools/releases/tag/v0.1.0

@@ -1,4 +1,4 @@
-import { HTMLElement } from 'node-html-parser';
+import { HTMLElement, NodeType } from 'node-html-parser';
 import { isBlockElement } from '../utils/domUtils';
 
 export interface TextPiece {
@@ -58,7 +58,7 @@ export class ContentBuilder {
 
     const traverseChildren = (el: HTMLElement) => {
       for (const node of el.childNodes) {
-        if (node.nodeType === 1) {
+        if (node.nodeType === NodeType.ELEMENT_NODE) {
           const element = node as HTMLElement;
           const tag = element.tagName?.toLowerCase();
 
@@ -112,7 +112,7 @@ export class ContentBuilder {
           if (isBlockElement(element)) {
             appendBlockNewline(element);
           }
-        } else if (node.nodeType === 3) {
+        } else if (node.nodeType === NodeType.TEXT_NODE) {
           const text = node.textContent || '';
           if (text.trim().length > 0) {
             if (!currentBlock) {
@@ -218,11 +218,11 @@ export class ContentBuilder {
       return true;
     }
     for (const node of el.childNodes) {
-      if (node.nodeType === 3) {
+      if (node.nodeType === NodeType.TEXT_NODE) {
         const text = node.textContent || '';
         if (text.trim().length > 0) return true;
       }
-      if (node.nodeType === 1) {
+      if (node.nodeType === NodeType.ELEMENT_NODE) {
         if (this.hasVisibleContent(node as HTMLElement)) return true;
       }
     }

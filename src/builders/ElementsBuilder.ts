@@ -16,7 +16,7 @@ import { StylesBuilder } from './StylesBuilder';
 export class ElementsBuilder {
   private stylesBuilder: StylesBuilder;
   private computedStyles: Map<HTMLElement, Record<string, string>>;
-  private allPieces: any[] = [];
+  private allPieces: TextPiece[] = [];
   private imageOffsets: Map<HTMLElement, number> = new Map();
 
   constructor(stylesBuilder: StylesBuilder) {
@@ -90,7 +90,7 @@ export class ElementsBuilder {
       }
       // ⭐ TABLO
       else if (tag === 'table') {
-        elements.push(this.createTable(block, pieces));
+        elements.push(this.createTable(block));
       }
       // Liste elemanları
       else if (tag === 'li') {
@@ -241,7 +241,7 @@ export class ElementsBuilder {
   /**
    * Tablo oluşturur
    */
-  private createTable(el: HTMLElement, allPieces: TextPiece[]): UDFTable {
+  private createTable(el: HTMLElement): UDFTable {
     const rows: UDFRow[] = [];
     const tableRows = el.querySelectorAll('tr');
 
@@ -254,7 +254,7 @@ export class ElementsBuilder {
           let current = p.ownerElement;
           while (current) {
             if (current === cellEl) return true;
-            current = current.parentNode as HTMLElement;
+            current = current.parentNode;
           }
           return false;
         });

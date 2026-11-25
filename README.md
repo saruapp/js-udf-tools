@@ -4,6 +4,11 @@ HTML dokümanlarını **UYAP UDF** (Ulusal Yargı Ağı Projesi Doküman Format�
 
 Avukatlar, arabulucular ve hukuk yazılımı geliştiricileri için.
 
+> **Teşekkürler:** Bu kütüphane geliştirilirken [@saidsurucu](https://github.com/saidsurucu)'nun
+> [UDF-Toolkit](https://github.com/saidsurucu/UDF-Toolkit) projesinden ve dokümanlarından
+> büyük ölçüde ilham aldık. UDF formatının çözümlenmesi ve dönüşüm kurallarının
+> netleştirilmesindeki katkıları için kendisine teşekkür ederiz.
+
 ---
 
 ## UDF Nedir?
@@ -174,6 +179,31 @@ const file = await converter.convert(html, 'cikti.udf', {
 });
 ```
 
+### UDF → HTML (Görüntüleme / PDF)
+
+Var olan bir `.udf` dosyasını okuyup bağımsız (self-contained) bir HTML dokümanına
+dönüştürebilirsiniz. Portal UDF görüntüleyici ve UDF → PDF (headless Chromium)
+akışları bu çıktıyı kullanır.
+
+```typescript
+import { readFile } from 'node:fs/promises';
+import { parseUdf, renderUdfHtml } from 'js-udf-tools';
+
+const doc = await parseUdf(await readFile('tutanak.udf'));
+
+doc.template.format_id; // şablon meta bilgisi
+doc.content;            // ortak CDATA metin havuzu
+doc.elements;           // paragraph / table / image / page-break…
+doc.styles;             // stil tanımları
+
+const html = renderUdfHtml(doc); // inline CSS + data-URI resimler içeren tam HTML
+```
+
+- `parseUdf` bilinmeyen UDF elemanlarını sessizce atlar (fail-soft); UDF olmayan
+  girdide Türkçe mesajla hata fırlatır.
+- `renderUdfHtml` çıktısı iframe (`sandbox`) veya headless tarayıcıda güvenle
+  kullanılabilir; yazdırma için `@page` kuralları sayfa ayarlarından üretilir.
+
 ### React Native / Expo
 
 ```bash
@@ -290,6 +320,52 @@ Dönüştürücüyü bir dosya sistemi adaptörü ile başlatır. Hazır adaptö
 | `options.resourceDir` | `string` | — | `<img>` dosya yolları için baz dizin |
 
 **Dönüş:** `Promise<IFile>` — oluşturulan UDF dosyası
+
+### `parseUdf(bytes)`
+
+UYAP UDF arşivini (ZIP + `content.xml`) doküman modeline çözer.
+
+| Parametre | Tip | Açıklama |
+|-----------|-----|----------|
+| `bytes` | `Uint8Array \| ArrayBuffer` | UDF dosyasının içeriği |
+
+**Dönüş:** `Promise<ParsedUdfDocument>` — `template`, `content`, `properties`,
+`elements`, `styles`. Bilinmeyen elemanlar atlanır; UDF olmayan girdi Türkçe
+mesajla reddedilir.
+
+### `renderUdfHtml(doc)`
+
+Çözülen dokümanı bağımsız HTML'e dönüştürür (inline CSS + data-URI resimler).
+
+| Parametre | Tip | Açıklama |
+|-----------|-----|----------|
+| `doc` | `ParsedUdfDocument` | `parseUdf` çıktısı |
+
+**Dönüş:** `string` — `<!doctype html>` ile başlayan tam HTML dokümanı
+
+---
+
+## Changelog
+
+Ayrıntılı sürüm kaydı: [CHANGELOG.md](./CHANGELOG.md)
+
+### Sıradaki sürüm
+
+**Eklenenler**
+- **UDF → HTML aracı:** `parseUdf()` UDF arşivini modele çözer, `renderUdfHtml()`
+  self-contained HTML üretir (portal görüntüleyici + UDF → PDF).
+- Dış UDF dosyalarındaki `<styles>` referansları (`paragraph.style`,
+  `content.style`) modele eklendi.
+
+**Düzeltmeler**
+- CDATA metin havuzunun sonuna paragraf-sonu `\n` eklendi (UYAP parite).
+- Editör paritesi: `<tab>` / `TabSet` çıktısı, 3 haneli hex renkler, blok sırası.
+- `blank-line` işaretçisi artık ayrı satır sonu paragrafı üretiyor.
+- `mediaSizeName` tam sayı olarak yazılıyor (A4 = 1); resim `toBase64` adaptörleri
+  düzeltildi.
+- Şablon stilleri ve `page-break` dönüşümü geri getirildi.
+
+> 0.1.0 – 0.1.2 arası sürümler için [CHANGELOG.md](./CHANGELOG.md).
 
 ---
 

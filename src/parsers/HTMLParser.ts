@@ -1,4 +1,4 @@
-import { HTMLElement, parse } from 'node-html-parser';
+import { HTMLElement, NodeType, parse } from 'node-html-parser';
 
 export interface ParsedHTML {
   root: HTMLElement;
@@ -52,10 +52,7 @@ export class HTMLParser {
     let previous = '';
     while (result !== previous) {
       previous = result;
-      result = result.replace(
-        /@media[^{]*\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g,
-        '$1',
-      );
+      result = result.replace(/@media[^{]*\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g, '$1');
     }
     return result;
   }
@@ -84,9 +81,7 @@ export class HTMLParser {
     return decls;
   }
 
-  private expandBoxShorthand(
-    value: string,
-  ): [string, string, string, string] {
+  private expandBoxShorthand(value: string): [string, string, string, string] {
     const parts = value.split(/\s+/).filter(Boolean);
     const top = parts[0] ?? '0';
     const right = parts[1] ?? top;
@@ -122,7 +117,7 @@ export class HTMLParser {
       if (!tag && !id && classList.length === 0) {
         computed.set(el, {});
         for (const child of el.childNodes as HTMLElement[]) {
-          if (child.nodeType === 1) {
+          if (child.nodeType === NodeType.ELEMENT_NODE) {
             traverse(child, inheritedStyles);
           }
         }
@@ -181,7 +176,7 @@ export class HTMLParser {
       }
 
       for (const child of el.childNodes as HTMLElement[]) {
-        if (child.nodeType === 1) {
+        if (child.nodeType === NodeType.ELEMENT_NODE) {
           traverse(child, inherited);
         }
       }
@@ -198,13 +193,9 @@ export class HTMLParser {
     const idMatch = selector.match(/#([A-Za-z0-9_-]+)/);
     if (idMatch && element.id !== idMatch[1]) return false;
 
-    const classMatches = [...selector.matchAll(/\.([A-Za-z0-9_-]+)/g)].map(
-      (match) => match[1],
-    );
+    const classMatches = [...selector.matchAll(/\.([A-Za-z0-9_-]+)/g)].map((match) => match[1]);
     if (classMatches.length > 0) {
-      const elementClasses = (element.getAttribute('class') || '')
-        .split(/\s+/)
-        .filter(Boolean);
+      const elementClasses = (element.getAttribute('class') || '').split(/\s+/).filter(Boolean);
       if (!classMatches.every((name) => elementClasses.includes(name))) {
         return false;
       }
@@ -230,10 +221,10 @@ export class HTMLParser {
       while (ancestor) {
         if (this.matchesSimple(ancestor, parts[index])) {
           found = true;
-          ancestor = ancestor.parentNode as HTMLElement | null;
+          ancestor = ancestor.parentNode;
           break;
         }
-        ancestor = ancestor.parentNode as HTMLElement | null;
+        ancestor = ancestor.parentNode;
       }
       if (!found) return false;
     }

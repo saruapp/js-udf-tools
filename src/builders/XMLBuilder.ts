@@ -183,7 +183,7 @@ export class XMLBuilder {
     }
   }
 
-  private buildPageBreak(parent: any, pb: UDFPageBreak) {
+  private buildPageBreak(parent: any, _pb: UDFPageBreak) {
     parent.ele('page-break');
   }
 

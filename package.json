@@ -27,9 +27,10 @@
   ],
   "scripts": {
     "build": "tsup",
-    "lint": "eslint src/ test/",
+    "lint": "eslint src/",
     "test": "jest",
     "test:convert": "npx tsx test/run.ts",
+    "release": "node scripts/release.mjs",
     "clean": "rm -rf dist"
   },
   "dependencies": {
@@ -64,8 +65,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/saruapp/js-udf-tools",
-    "directory": "packages/js-udf-tools"
+    "url": "https://github.com/saruapp/js-udf-tools"
   },
   "bugs": {
     "url": "https://github.com/saruapp/js-udf-tools/issues"

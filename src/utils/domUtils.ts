@@ -1,5 +1,5 @@
 // shared/udf-converter/utils/domUtils.ts
-import { HTMLElement } from 'node-html-parser';
+import { HTMLElement, NodeType } from 'node-html-parser';
 
 /**
  * HTML'de blok seviyesinde elementlerin listesi.
@@ -61,10 +61,10 @@ export function isInlineElement(el: HTMLElement): boolean {
 export function getElementText(el: HTMLElement): string {
   let text = '';
   for (const node of el.childNodes) {
-    if (node.nodeType === 3) {
+    if (node.nodeType === NodeType.TEXT_NODE) {
       // text node
       text += node.textContent || '';
-    } else if (node.nodeType === 1) {
+    } else if (node.nodeType === NodeType.ELEMENT_NODE) {
       // element node
       text += getElementText(node as HTMLElement);
     }
