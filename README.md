@@ -169,7 +169,7 @@ const html = `
 
 ```typescript
 const file = await converter.convert(html, 'cikti.udf', {
-  pageSize: 'A4',       // 'A4' | 'LETTER' (varsayılan: A4)
+  pageSize: 'A4',       // geriye dönük uyumluluk; çıktı her zaman A4 (mediaSizeName="1")
   margins: {
     top: 56.69,          // punto cinsinden
     bottom: 56.69,
@@ -315,7 +315,7 @@ Dönüştürücüyü bir dosya sistemi adaptörü ile başlatır. Hazır adaptö
 |-----------|-----|-----------|----------|
 | `html` | `string` | — | Dönüştürülecek HTML |
 | `outputPath` | `string` | — | Çıktı `.udf` dosyasının yolu |
-| `options.pageSize` | `'A4' \| 'LETTER'` | `'A4'` | Sayfa boyutu |
+| `options.pageSize` | `'A4'` | — | Geriye dönük uyumluluk; çıktı her zaman A4 (`mediaSizeName="1"`) |
 | `options.margins` | `{ top, bottom, left, right }` | `42.525pt` | Kenar boşlukları (punto) |
 | `options.resourceDir` | `string` | — | `<img>` dosya yolları için baz dizin |
 
