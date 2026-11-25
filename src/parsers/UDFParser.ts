@@ -550,10 +550,7 @@ export interface RenderUdfHtmlOptions {
  *   kenar boşlukları, koyu zemin + gölge. Dar kapsayıcıda (telefon tarayıcısı
  *   veya RN WebView) `zoom` ile orantılı küçülür; betik gerekmez.
  */
-export function renderUdfHtml(
-  doc: ParsedUdfDocument,
-  options: RenderUdfHtmlOptions = {},
-): string {
+export function renderUdfHtml(doc: ParsedUdfDocument, options: RenderUdfHtmlOptions = {}): string {
   const styles = styleMap(doc.styles);
   const headers = doc.elements
     .filter((element): element is UDFHeader => element.type === 'header')
@@ -619,6 +616,6 @@ ${headers}${body}${footers}
 /** Ekran (A4 kâğıt) için sayfa kenar boşlukları: UDF pt → CSS px. */
 function paperPadding(properties: UDFProperties): string {
   const format = properties.pageFormat;
-  const px = (pt: number) => Math.round((pt * 96) / 72 * 100) / 100;
+  const px = (pt: number) => Math.round(((pt * 96) / 72) * 100) / 100;
   return `${px(format.topMargin)}px ${px(format.rightMargin)}px ${px(format.bottomMargin)}px ${px(format.leftMargin)}px`;
 }
