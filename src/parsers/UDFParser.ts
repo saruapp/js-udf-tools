@@ -532,14 +532,28 @@ function renderPageCss(properties: UDFProperties): string {
   return `@page{size:${size}${orientation};margin:${format.topMargin}pt ${format.rightMargin}pt ${format.bottomMargin}pt ${format.leftMargin}pt;}`;
 }
 
+export interface RenderUdfHtmlOptions {
+  /** `flow` (varsayılan) = akış/PDF; `paper` = ekran için A4 kâğıt düzeni. */
+  layout?: 'flow' | 'paper';
+}
+
 /**
  * Renders a parsed UDF as a standalone HTML document.
  *
  * Used by the portal viewer and by the UDF→PDF conversion (HTML → Chromium).
  * The output is self-contained (inline CSS, data-URI images) and safe to put
  * in an iframe (`sandbox`) or a headless browser.
+ *
+ * `layout`:
+ * - `flow` (varsayılan) — akış düzeni; PDF dönüşümü bu çıktıyı kullanır.
+ * - `paper` — ekran için A4 kâğıt: `.udf-page` sarmalayıcı, `pageFormat`
+ *   kenar boşlukları, koyu zemin + gölge. Dar kapsayıcıda (telefon tarayıcısı
+ *   veya RN WebView) `zoom` ile orantılı küçülür; betik gerekmez.
  */
-export function renderUdfHtml(doc: ParsedUdfDocument): string {
+export function renderUdfHtml(
+  doc: ParsedUdfDocument,
+  options: RenderUdfHtmlOptions = {},
+): string {
   const styles = styleMap(doc.styles);
   const headers = doc.elements
     .filter((element): element is UDFHeader => element.type === 'header')
@@ -550,6 +564,34 @@ export function renderUdfHtml(doc: ParsedUdfDocument): string {
     .map((footer) => `<footer>${renderElements(doc, styles, footer.paragraphs, true)}</footer>`)
     .join('');
   const body = renderElements(doc, styles, doc.elements, false);
+
+  if (options.layout === 'paper') {
+    return `<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+${renderPageCss(doc.properties)}
+*{box-sizing:border-box}
+html{background:#e9edf2}
+body{margin:0;font-family:'Times New Roman',serif;font-size:12pt;line-height:1.15;color:#000}
+p{margin:0;white-space:pre-wrap}
+header,footer{display:block;margin:0 0 6pt}
+table{border-collapse:collapse;width:100%}
+td{border:0.5pt solid #000;padding:2pt 4pt;vertical-align:top}
+.udf-tab{white-space:pre}
+img{max-width:100%}
+.udf-sheet-viewport{container-type:inline-size;width:100%;min-height:100vh;padding:24px 12px;background:#e9edf2;overflow:auto}
+.udf-page{width:21cm;min-height:29.7cm;margin:0 auto;padding:${paperPadding(doc.properties)};background:#fff;box-shadow:0 10px 30px rgba(15,23,42,0.18);zoom:min(1, calc(100cqw / 21cm))}
+@media print{html,.udf-sheet-viewport{background:#fff}.udf-sheet-viewport{padding:0}.udf-page{width:auto;min-height:0;padding:0;box-shadow:none;zoom:1}}
+</style>
+</head>
+<body>
+<div class="udf-sheet-viewport"><div class="udf-page">${headers}${body}${footers}</div></div>
+</body>
+</html>`;
+  }
 
   return `<!doctype html>
 <html lang="tr">
@@ -572,4 +614,11 @@ img{max-width:100%}
 ${headers}${body}${footers}
 </body>
 </html>`;
+}
+
+/** Ekran (A4 kâğıt) için sayfa kenar boşlukları: UDF pt → CSS px. */
+function paperPadding(properties: UDFProperties): string {
+  const format = properties.pageFormat;
+  const px = (pt: number) => Math.round((pt * 96) / 72 * 100) / 100;
+  return `${px(format.topMargin)}px ${px(format.rightMargin)}px ${px(format.bottomMargin)}px ${px(format.leftMargin)}px`;
 }

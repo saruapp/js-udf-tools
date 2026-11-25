@@ -274,3 +274,51 @@ describe('renderUdfHtml', () => {
     expect(fallback).toContain('size:A4');
   });
 });
+
+describe('renderUdfHtml — paper layout (SPEC 9.27 Rev)', () => {
+  const doc = (): ParsedUdfDocument => ({
+    template: { format_id: 'test' },
+    content: 'Merhaba dünya\n',
+    properties: {
+      pageFormat: {
+        mediaSizeName: '1',
+        leftMargin: 70.86,
+        rightMargin: 70.86,
+        topMargin: 56.69,
+        bottomMargin: 56.69,
+        paperOrientation: 'portrait',
+      },
+    },
+    styles: [{ name: 'default', family: 'Times New Roman', size: 12 }],
+    elements: [
+      {
+        type: 'paragraph',
+        alignment: 0,
+        contents: [{ startOffset: 0, length: 7 }],
+      },
+    ],
+  });
+
+  it('defaults to the flow layout (PDF path unchanged)', () => {
+    const html = renderUdfHtml(doc());
+    expect(html).not.toContain('udf-page');
+    expect(html).not.toContain('udf-sheet-viewport');
+    expect(html).toContain('@page');
+  });
+
+  it('wraps the content in an A4 paper sheet with page margins', () => {
+    const html = renderUdfHtml(doc(), { layout: 'paper' });
+
+    expect(html).toContain('class="udf-sheet-viewport"');
+    expect(html).toContain('class="udf-page"');
+    expect(html).toContain('width:21cm');
+    expect(html).toContain('min-height:29.7cm');
+    expect(html).toContain('background:#e9edf2');
+    expect(html).toContain('box-shadow');
+    // pt → px: 56.69pt ≈ 75.59px, 70.86pt ≈ 94.48px
+    expect(html).toContain('padding:75.59px 94.48px 75.59px 94.48px');
+    // Betik gerekmeden dar kapsayıcıya sığdırma.
+    expect(html).toContain('zoom:min(1, calc(100cqw / 21cm))');
+    expect(html).not.toContain('<script');
+  });
+});

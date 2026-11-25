@@ -197,7 +197,14 @@ doc.elements;           // paragraph / table / image / page-break…
 doc.styles;             // stil tanımları
 
 const html = renderUdfHtml(doc); // inline CSS + data-URI resimler içeren tam HTML
+const paper = renderUdfHtml(doc, { layout: 'paper' }); // ekran için A4 kâğıt görünümü
 ```
+
+`layout` seçenekleri:
+- `'flow'` (varsayılan): akış düzeni — PDF dönüşümü (headless Chromium) bu çıktıyı kullanır.
+- `'paper'`: ekran için A4 kâğıt (`.udf-page`, sayfa kenar boşlukları, gölge). Dar
+  kapsayıcıda (telefon tarayıcısı veya RN WebView) `zoom` ile orantılı küçülür; **betik
+  gerektirmez**, `sandbox` iframe'de güvenle kullanılır.
 
 - `parseUdf` bilinmeyen UDF elemanlarını sessizce atlar (fail-soft); UDF olmayan
   girdide Türkçe mesajla hata fırlatır.
