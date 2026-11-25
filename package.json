@@ -1,6 +1,6 @@
 {
   "name": "js-udf-tools",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "HTML to UYAP UDF (Ulusal Yargı Ağı Projesi Doküman Formatı) converter library for Node.js and React Native",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
